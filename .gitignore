@@ -1,0 +1,17 @@
+# Godot 4+
+.godot/
+
+# project
+*.sf2
+*.sf2.uid
+export_presets.cfg
+
+# build
+__pycache__
+.sconsign.dblite
+*.os
+
+distribute/
+build/
+export/
+addons/godot-fluidsynth/bin

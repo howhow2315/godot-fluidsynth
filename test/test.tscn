@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://brktpc4xyne1x"]
+
+[ext_resource type="Script" uid="uid://cdg1ilygfqta3" path="res://test/test.gd" id="1_syuel"]
+
+[node name="Test" type="Node" unique_id=1807116421]
+script = ExtResource("1_syuel")
+
+[node name="FluidSynthPlayer" type="FluidSynthPlayer" parent="." unique_id=970848644]
+gain = 8.0
+
+[node name="MIDIListener" type="MIDIListener" parent="." unique_id=682155866]

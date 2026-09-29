@@ -1,0 +1,9 @@
+[submodule "godot-cpp"]
+	path = library/godot-cpp
+	url = https://github.com/godotengine/godot-cpp.git
+[submodule "fluidsynth"]
+	path = library/fluidsynth
+	url = https://github.com/FluidSynth/fluidsynth.git
+[submodule "TimGM6mb"]
+	path = assets/soundfonts/TimGM6mb
+	url = https://github.com/arbruijn/TimGM6mb
