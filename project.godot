@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="fluidsynth-gdextension"
+config/name="godot-fluidsynth"
 run/main_scene="uid://brktpc4xyne1x"
 config/features=PackedStringArray("4.7")
 config/icon="uid://bfb4is2rgcqmy"

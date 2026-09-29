@@ -7,7 +7,6 @@ import subprocess
 from pathlib import Path
 
 
-# https://www.fluidsynth.org/wiki/BuildingWithCMake/
 # https://www.fluidsynth.org/wiki/BuildingWithCMake/#output-library-naming-conventions
 # we dont need fluidsynth to have access to any audio servers, midi devices, or anything system level like networking or d-bus/systemd
 BUILD_OPTIONS = {
@@ -41,7 +40,7 @@ BUILD_OPTIONS = {
 
     # Android
     "enable-oboe": False,          # Android Oboe audio backend.
-    "enable-opensles": False,       # Android OpenSL ES audio backend.
+    "enable-opensles": False,      # Android OpenSL ES audio backend.
 
     # Core synthesis
     "enable-threads": True,        # Multithreading, including parallel voice synthesis.
@@ -55,6 +54,14 @@ BUILD_OPTIONS = {
     "enable-readline": False,      # Readline support for the interactive CLI; unnecessary for library use.
     "enable-ipv6": False,          # IPv6 support; only relevant if network functionality is enabled.
 }
+
+# :zombie: double check https://www.fluidsynth.org/wiki/BuildingWithCMake/
+# CMake Warning (unused-cli):
+#   Manually-specified variables were not used by the project:
+
+#     enable-coreaudio
+#     enable-coremidi
+#     enable-framework
 
 
 def run(*args: str) -> None:
