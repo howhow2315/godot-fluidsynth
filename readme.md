@@ -37,3 +37,7 @@ on android version
 2026-10-12 09:06:40.222 11694-11694 godot                   com.example.godotfluidsynth          E  ERROR: Error loading extension: 'res://addons/godot-fluidsynth/fluidsynth.gdextension'.
 2026-10-12 09:06:40.222 11694-11694 godot                   com.example.godotfluidsynth          E     at: load_extensions (core/extension/gdextension_manager.cpp:333)
 ```
+
+# tip
+
+useful alongside (howhow2315/godot-midi)[https://github.com/howhow2315/godot-fluidsynth] to read and play midi files !
