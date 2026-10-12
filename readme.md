@@ -4,7 +4,7 @@ a godot gdextension for fluidsynth with sf2 support
 
 # tip
 
-useful alongside [howhow2315/godot-midi](https://github.com/howhow2315/godot-fluidsynth) to read and play midi files !
+useful alongside [howhow2315/godot-midi](https://github.com/howhow2315/godot-midi) to read and play midi files !
 
 ## notes
 
