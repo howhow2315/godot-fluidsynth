@@ -8,18 +8,21 @@ useful alongside [howhow2315/godot-midi](https://github.com/howhow2315/godot-mid
 
 ## notes
 
-- fluidsynth should work with sf3 but windows requires a library to be bundled with it and thats out of my personal scope
+fluidsynth should work with sf3 but windows requires a library to be bundled with it and thats out of my personal scope
 
+frankly theres a lot of work left to do to make this a proper, and good plugin, but this proof of concept has basic functionality without much compromise (openmp enraging me)
+
+if you decide to use this or help at all, i deeply apologize for my lack of commits, i needed to pump this out as fast as i could and that meant mass local hotfixing (especially with ci...), id be happy to explain anything thats needed, feel free to contact me at [howhow.stream](https://howhow.stream)
 
 ## todo
 
-- export to all platforms fluidsynth and godot support; currently implemented: linux.x86_64, windows.x86_64 (basic macos stuff is laid out)
+- export to all platforms that fluidsynth and godot support; currently implemented: linux, windows
 - add pitch_bend/chorus/reverb midi fluidsynth controls (basic functions are present, they do not work)
+- look into handling "program"/"instruments" better
 - add editor annotations via godots .xml feature
 - cleanup `presets` to be sorted by bank and program number instead of a big array/dictionary
+- convert preset from a dictionary to a resource SoundFontPreset
 - figure out how to handle buffer size better as well as reduce latency (its already pretty low but lower the better)
-- add FluidSynth license on build from SConstruct instead of it being static manually
-- properly handle "program" changes not make it global and instead per note
 
 #### platforms
 
