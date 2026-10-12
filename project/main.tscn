@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://cf5sqk6dd4esg"]
+
+[ext_resource type="Script" uid="uid://dfde02ghyokyh" path="res://main.gd" id="1_g1q4x"]
+[ext_resource type="Script" uid="uid://ydp5o12wmq1w" path="res://classes/midi_visualizer.gd" id="2_ik7bt"]
+[ext_resource type="Script" uid="uid://buvijytvkgmow" path="res://classes/midi_listener.gd" id="2_wms8s"]
+
+[node name="Main" type="Node" unique_id=329215823]
+script = ExtResource("1_g1q4x")
+
+[node name="FluidSynthPlayer" type="FluidSynthPlayer" parent="." unique_id=1636009764]
+buffer_length = 0.03499999999999999
+gain = 6.0
+
+[node name="MIDIListener" type="Node" parent="." unique_id=1915273076]
+script = ExtResource("2_wms8s")
+metadata/_custom_type_script = "uid://buvijytvkgmow"
+
+[node name="MIDIVisualizer" type="Node3D" parent="." unique_id=485156756]
+script = ExtResource("2_ik7bt")
+note_speed = 5.0
+note_min_x = -9.9
+note_max_x = 9.9
+note_max_y = 12.0
+metadata/_custom_type_script = "uid://ydp5o12wmq1w"
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=548706752]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 10)
+size = 11.5
+
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=1602683343]
+size = Vector3(20, 0.1, 0.35)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1512973600]
+transform = Transform3D(-0.392767, 0.35355294, -0.8489608, 0.480471, 0.86602587, 0.13837253, 0.784144, -0.35355285, -0.5100183, -2, 2, 2)

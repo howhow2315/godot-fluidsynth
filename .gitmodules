@@ -5,5 +5,5 @@
 	path = library/fluidsynth
 	url = https://github.com/FluidSynth/fluidsynth.git
 [submodule "TimGM6mb"]
-	path = assets/soundfonts/TimGM6mb
+	path = library/TimGM6mb
 	url = https://github.com/arbruijn/TimGM6mb

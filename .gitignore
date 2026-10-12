@@ -1,17 +1,65 @@
-# Godot 4+
+# Godot auto generated files
+*.gen.*
 .godot/
 
-# project
-*.sf2
-*.sf2.uid
-export_presets.cfg
+# Ignore library files
+bin
+binaries
 
-# build
-__pycache__
-.sconsign.dblite
+# Ignore scons database
+.sconsign*.dblite
+
+# Ignore custom.py
+custom.py
+
+# Ignore generated compile_commands.json
+compile_commands.json
+
+# Ignore files generated for documentation
+/generated
+
+# Binaries
+*.o
 *.os
+*.so
+*.obj
+*.bc
+*.pyc
+*.dblite
+*.pdb
+*.lib
+*.config
+*.creator
+*.creator.user
+*.files
+*.includes
+*.idb
+*.exp
 
-distribute/
+# Python
+__pycache__
+
+# clangd
+.cache
+
+# Other stuff
+*.log
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+
+# Jetbrains
+.idea/
+
+# Cmake
+cmake-build*
+CMakeUserPresets.json
+
+# project
 build/
 export/
-addons/godot-fluidsynth/bin
+export_presets.cfg
+project/addons/godot-fluidsynth/licenses/*
+project/addons/godot-fluidsynth/*.md

@@ -1,52 +1,77 @@
-from glob import glob
+#!/usr/bin/env python
+import os, sys
+from methods import print_error
 
-ADDON_DIRECTORY = "addons/godot-fluidsynth"
-FLUIDSYNTH_SOURCE = "library/fluidsynth"
-FLUIDSYNTH_INSTALL = "build/fluidsynth"
 
-GODOT_API_VERSION = "4.7"
+libname = "fluidsynth"
+ADDON_NAME = f"godot-{libname}"
+API_VERSION = "4.7"
+
+# Build profiles can be used to decrease compile times.
+# You can either specify "disabled_classes", OR
+# explicitly specify "enabled_classes" which disables all other classes.
+# Modify the example file as needed and uncomment the line below or
+# manually specify the build_profile parameter when running SCons.
+# see build_profile.json
+USE_BUILD_PROFILE = True
+
+PROJECT_DIRECTORY = "project"
+LIBRARY_DIRECTORY = "library"
+SOURCE_DIRECTORY = "source"
+GENERATED_DIRECTORY = f"generated"
+ADDON_DIRECTORY = f"{PROJECT_DIRECTORY}/addons/{ADDON_NAME}"
+BINARY_DIRECTORY = f"{ADDON_DIRECTORY}/binaries"
+GENERATED_DOCUMENTS_DIRECTORY = f"{GENERATED_DIRECTORY}/documents"
+LIBRARY_INSTALL = f"{GENERATED_DIRECTORY}/{LIBRARY_DIRECTORY}"
+
+FLUIDSYNTH_SOURCE = f"{LIBRARY_DIRECTORY}/fluidsynth"
+FLUIDSYNTH_INSTALL = f"{GENERATED_DIRECTORY}/fluidsynth"
+
+localEnv = Environment(tools=["default"], PLATFORM="")
+if USE_BUILD_PROFILE:
+    localEnv["build_profile"] = "build_profile.json"
+
+customs = ["custom.py"]
+customs = [os.path.abspath(path) for path in customs]
+
+opts = Variables(customs, ARGUMENTS)
+opts.Update(localEnv)
+
+Help(opts.GenerateHelpText(localEnv))
+
+env = localEnv.Clone()
+
+if not (
+    os.path.isdir(f"{LIBRARY_DIRECTORY}/godot-cpp")
+    and os.listdir(f"{LIBRARY_DIRECTORY}/godot-cpp")
+):
+    print_error(
+        """godot-cpp is not available within this folder, as Git submodules haven't been initialized.
+Run the following command to download godot-cpp:
+
+    git submodule update --init --recursive"""
+    )
+    sys.exit(1)
 
 env = SConscript(
-    "library/godot-cpp/SConstruct",
-    {
-        "api_version": GODOT_API_VERSION,
-        # "symbols_visibility": "visible"
-    }
+    f"{LIBRARY_DIRECTORY}/godot-cpp/SConstruct",
+    {"api_version": API_VERSION, "env": env, "customs": customs},
 )
+sources = Glob(f"{SOURCE_DIRECTORY}/*.cpp") + Glob(
+    f"{SOURCE_DIRECTORY}/*/*.cpp"
+)  # also include subfolders
+
+env["FLUIDSYNTH_INSTALL"] = FLUIDSYNTH_INSTALL
 env.Tool("fluidsynth", toolpath=["tools"])
 
 platform = env["platform"]
-arch = env["arch"]
 
-if platform not in ("linux", "windows", "macos"):
-    raise ValueError(f"Unsupported platform: {platform}")
+# BIN_SUBDIRECTORY = platform
+BIN_SUBDIRECTORY = f"{env["platform"]}.{env['arch']}"  # if you use this make sure to update the .gdextension
 
-bin_directory = f"{ADDON_DIRECTORY}/bin/{platform}.{arch}"
+FLUIDSYNTH_LINK_LIBRARY = f"lib/libfluidsynth{'-3' if platform == 'windows' else ''}.a"
 
-FLUIDSYNTH_ARTIFACTS = {
-    "linux": [
-        "lib/libfluidsynth.so",
-        "lib/libfluidsynth.so.3",
-        "lib/libfluidsynth.so.3.6.1",
-    ],
-    "windows": [
-        "bin/libfluidsynth-3.dll",
-        "lib/libfluidsynth-3.lib",
-    ],
-    "macos": [
-        "lib/libfluidsynth.dylib",
-        "lib/libfluidsynth.3.dylib",
-    ],
-}
-
-FLUIDSYNTH_LINK_LIBRARY = {
-    "linux": "lib/libfluidsynth.so",
-    "windows": "lib/libfluidsynth-3.lib",
-    "macos": "lib/libfluidsynth.dylib",
-}
-
-
-fluidsynth_targets = [f"{FLUIDSYNTH_INSTALL}/{artifact}" for artifact in FLUIDSYNTH_ARTIFACTS[platform]]
+fluidsynth_targets = [f"{FLUIDSYNTH_INSTALL}/{FLUIDSYNTH_LINK_LIBRARY}"]
 fluidsynth_build = env.fluidsynth(fluidsynth_targets, FLUIDSYNTH_SOURCE)
 
 env.Append(
@@ -56,91 +81,91 @@ env.Append(
     ],
     LIBPATH=[
         f"{FLUIDSYNTH_INSTALL}/lib",
-        "library/godot-cpp/bin",
+        f"{LIBRARY_DIRECTORY}/godot-cpp/bin",
     ],
 )
 
-sources = glob("source/*.cpp")
+
+env.Append(CPPPATH=[f"{SOURCE_DIRECTORY}/"])
+
 objects = env.SharedObject(sources)
 env.Depends(objects, fluidsynth_build)
 
 suffix = env["suffix"]
 
-godot_cpp = File(f"library/godot-cpp/bin/libgodot-cpp{suffix}{env['LIBSUFFIX']}")
-fluidsynth = File(f"{FLUIDSYNTH_INSTALL}/{FLUIDSYNTH_LINK_LIBRARY[platform]}")
+godot_cpp = File(
+    f"{LIBRARY_DIRECTORY}/godot-cpp/bin/libgodot-cpp{suffix}{env['LIBSUFFIX']}"
+)
+fluidsynth = File(f"{FLUIDSYNTH_INSTALL}/{FLUIDSYNTH_LINK_LIBRARY}")
 
+# .dev doesn't inhibit compatibility, so we don't need to key it.
+# .universal just means "compatible with all relevant arches" so we don't need to key it.
+suffix = env["suffix"].replace(".dev", "").replace(".universal", "")
 lib_filename = (
-    f"{env.subst('$SHLIBPREFIX')}"
-    f"fluidsynth"
-    f"{suffix}"
-    f"{env.subst('$SHLIBSUFFIX')}"
+    f"{env.subst('$SHLIBPREFIX')}{libname}{suffix}{env.subst('$SHLIBSUFFIX')}"
 )
 
-library = env.SharedLibrary(
-    f"{bin_directory}/{lib_filename}",
-    source=objects,
-    LIBS=[godot_cpp, fluidsynth],
-)
+link_libs = [godot_cpp, fluidsynth]
+# if platform == "windows": link_libs.append("gomp")
+if platform == "android": link_libs.append("log")
+
+if platform == "ios":
+    # iOS GDExtensions are packaged as static archives.
+    library = env.StaticLibrary(
+        f"{LIBRARY_INSTALL}/{BIN_SUBDIRECTORY}/lib{libname}",
+        source=objects,
+        LIBS=link_libs,
+    )
+else:
+    library = env.SharedLibrary(
+        f"{LIBRARY_INSTALL}/{BIN_SUBDIRECTORY}/{lib_filename}",
+        source=objects,
+        LIBS=link_libs,
+    )
 
 env.Depends(library, fluidsynth_build)
-
 default_targets = [library]
 
-if platform == "linux":
-    runtime = env.Command(
-        f"{bin_directory}/libfluidsynth.so.3.6.1",
-        f"{FLUIDSYNTH_INSTALL}/lib/libfluidsynth.so.3.6.1",
-        Copy("$TARGET", "$SOURCE"),
-    )
-    env.Depends(runtime, fluidsynth_build)
-
-    soname = env.Command(
-        f"{bin_directory}/libfluidsynth.so.3",
-        runtime,
-        Action("ln -sf libfluidsynth.so.3.6.1 $TARGET"),
-    )
-    env.Depends(soname, runtime)
-    env.Depends(library, soname)
-
-    default_targets.extend([runtime, soname])
-
-elif platform == "windows":
-    runtime = env.Command(
-        f"{bin_directory}/libfluidsynth-3.dll",
-        f"{FLUIDSYNTH_INSTALL}/bin/libfluidsynth-3.dll",
-        Copy("$TARGET", "$SOURCE"),
-    )
-    env.Depends(runtime, fluidsynth_build)
-    env.Depends(library, runtime)
-
-    default_targets.append(runtime)
-
-elif platform == "macos":
-    runtime = env.Command(
-        f"{bin_directory}/libfluidsynth.3.dylib",
-        f"{FLUIDSYNTH_INSTALL}/lib/libfluidsynth.3.dylib",
-        Copy("$TARGET", "$SOURCE"),
-    )
-    env.Depends(runtime, fluidsynth_build)
-
-    dylib = env.Command(
-        f"{bin_directory}/libfluidsynth.dylib",
-        runtime,
-        Action("ln -sf libfluidsynth.3.dylib $TARGET"),
-    )
-    env.Depends(dylib, runtime)
-    env.Depends(library, dylib)
-
-    default_targets.extend([runtime, dylib])
-
-
+# project files
 addons_source = ["license.md", "readme.md"]
 addons_files = env.Command(
     [f"{ADDON_DIRECTORY}/{file}" for file in addons_source],
     addons_source,
-    Copy(ADDON_DIRECTORY, addons_source),
+    [Copy(f"{ADDON_DIRECTORY}/{file}", file) for file in addons_source],
 )
-
 default_targets.append(addons_files)
-Default(*default_targets)
 Alias("addons_files", addons_files)
+
+# external licenses
+license_file = "license"
+licenses = {"fluidsynth": f"{LIBRARY_DIRECTORY}/fluidsynth/LICENSE"}
+license_targets = [
+    f"{ADDON_DIRECTORY}/licenses/{name}.{license_file}" for name in licenses
+]
+license_sources = list(licenses.values())
+licenses_files = env.Command(
+    license_targets,
+    license_sources,
+    [
+        Copy(f"{ADDON_DIRECTORY}/licenses/{name}.{license_file}", source)
+        for name, source in licenses.items()
+    ],
+)
+default_targets.append(licenses_files)
+Alias("licenses_files", licenses_files)
+
+# include document data
+if env["target"] in ["editor", "template_debug"]:
+    try:
+        doc_data = env.GodotCPPDocData(
+            f"{GENERATED_DOCUMENTS_DIRECTORY}/doc_data.gen.cpp",
+            source=Glob("doc_classes/*.xml"),
+        )
+        sources.append(doc_data)
+    except AttributeError:
+        print("Not including class reference as we're targeting a pre-4.3 baseline.")
+
+copy = env.Install(f"{BINARY_DIRECTORY}/{BIN_SUBDIRECTORY}/", library)
+
+default_args = [library, copy]
+Default(*default_args, *default_targets)

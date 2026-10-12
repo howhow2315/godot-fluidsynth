@@ -1,0 +1,15 @@
+{
+	"type": "feature_profile",
+	"enabled_classes": [
+		"OS",
+		"AudioStreamGenerator",
+		"AudioStreamGeneratorPlayback",
+		"AudioStreamPlayer",
+		"InputEventMIDI",
+		"Node",
+		"ResourceLoader",
+		"FileAccess",
+		"ResourceFormatLoader",
+		"Resource"
+	]
+}
