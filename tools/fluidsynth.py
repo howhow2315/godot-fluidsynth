@@ -49,6 +49,9 @@ BUILD_OPTIONS = {
 }
 
 PLATFORM_BUILD_OPTIONS = {
+    "linux": {
+        "openmp": False,
+    },
     "windows": {
         "openmp": False,
     },
@@ -169,22 +172,13 @@ def target_cmake_args(platform: str, arch: str) -> list[str]:
         )
 
     elif platform == "windows":
-        # args.extend(
-        #     [
-        #         "-G",
-        #         "MinGW Makefiles",
-        #         "-DCMAKE_C_COMPILER=gcc",
-        #         "-DCMAKE_CXX_COMPILER=g++",
-        #     ]
-        # )
-
-        # if this doesnt work consider MinGW-w64, im resigning to disable openmp instead for now
         args.extend(
             [
                 "-G",
                 "MinGW Makefiles",
                 "-DCMAKE_C_COMPILER=gcc",
                 "-DCMAKE_CXX_COMPILER=g++",
+                # if this doesnt work consider MinGW-w64, im resigning to disable openmp instead for now
                 "-DCMAKE_C_FLAGS=-foffload=disable",
                 "-DCMAKE_CXX_FLAGS=-foffload=disable",
             ]
@@ -292,9 +286,6 @@ def build_cmake(
         "fluidsynth_development",
     )
 
-    # run("cmake", "--build", str(build), "--parallel", "--config", "Release")
-    # run("cmake", "--install", str(build), "--config", "Release")
-
 
 def build_fluidsynth(target, source, env) -> None:
     source_path = Path(str(source[0])).resolve()
@@ -302,10 +293,6 @@ def build_fluidsynth(target, source, env) -> None:
 
     platform = str(env["platform"])
     arch = str(env.get("arch", ""))
-
-    # Link the OpenMP runtime
-    if platform == "linux": # windows needs this too if were adding openmp
-        env.Append(LINKFLAGS=["-fopenmp"])
 
     # Include the target in the build directory to prevent incompatible
     # CMake caches from being reused across platforms and architectures.

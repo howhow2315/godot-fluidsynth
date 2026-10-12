@@ -86,6 +86,7 @@ env.Append(
 )
 
 
+
 env.Append(CPPPATH=[f"{SOURCE_DIRECTORY}/"])
 
 objects = env.SharedObject(sources)
@@ -108,6 +109,10 @@ lib_filename = (
 link_libs = [godot_cpp, fluidsynth]
 # if platform == "windows": link_libs.append("gomp")
 if platform == "android": link_libs.append("log")
+# link the OpenMP runtime; windows needs this too if were adding openmp
+if platform == "linux": 
+    link_libs.append("gomp")
+    env.Append(LINKFLAGS=["-fopenmp"])
 
 if platform == "ios":
     # iOS GDExtensions are packaged as static archives.
