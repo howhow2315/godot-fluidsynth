@@ -69,11 +69,11 @@ jobs:
 
       # Build GDExtension (with caches)
 
-      - name: Restore .scons_cache
-        uses: ./library/godot-cpp/.github/actions/godot-cache-restore
-        with:
-          scons-cache: ${{ github.workspace }}/.scons-cache/
-          cache-name: ${{ matrix.target.platform }}_${{ matrix.target.arch }}_${{ matrix.float-precision }}_${{ matrix.target-type }}
+      # - name: Restore .scons_cache
+      #   uses: ./library/godot-cpp/.github/actions/godot-cache-restore
+      #   with:
+      #     scons-cache: ${{ github.workspace }}/.scons-cache/
+      #     cache-name: ${{ matrix.target.platform }}_${{ matrix.target.arch }}_${{ matrix.float-precision }}_${{ matrix.target-type }}
 
       - name: Build GDExtension Debug Build
         shell: sh
@@ -82,11 +82,11 @@ jobs:
         run: |
           scons target=${{ matrix.target-type }} platform=${{ matrix.target.platform }} arch=${{ matrix.target.arch }} precision=${{ matrix.float-precision }}
 
-      - name: Save .scons_cache
-        uses: ./library/godot-cpp/.github/actions/godot-cache-save
-        with:
-          scons-cache: ${{ github.workspace }}/.scons-cache/
-          cache-name: ${{ matrix.target.platform }}_${{ matrix.target.arch }}_${{ matrix.float-precision }}_${{ matrix.target-type }}
+      # - name: Save .scons_cache
+      #   uses: ./library/godot-cpp/.github/actions/godot-cache-save
+      #   with:
+      #     scons-cache: ${{ github.workspace }}/.scons-cache/
+      #     cache-name: ${{ matrix.target.platform }}_${{ matrix.target.arch }}_${{ matrix.float-precision }}_${{ matrix.target-type }}
 
       # Clean up compilation files
       - name: Windows - Delete compilation files
