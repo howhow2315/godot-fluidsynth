@@ -1,4 +1,6 @@
 #include "fluidsynth_player.hpp"
+#include "godot_cpp/classes/node.hpp"
+#include "godot_cpp/variant/string_name.hpp"
 
 FluidSynthPlayer::FluidSynthPlayer() {
 	set_process(true);
@@ -40,10 +42,37 @@ FluidSynthPlayer::~FluidSynthPlayer() {
 }
 
 void FluidSynthPlayer::_ready() {
+	if (!audio_player_path.is_empty()) {
+		Node *node = get_node_or_null(audio_player_path);
+
+		if (node && is_valid_audio_player(node)) {
+			audio_player = node;
+			owns_audio_player = false;
+		} else {
+			UtilityFunctions::push_error("FluidSynthPlayer: External audio player not found or has an invalid type.");
+		}
+	}
+
 	_configure_audio_player();
 }
 
 void FluidSynthPlayer::_configure_audio_player() {
+	audio_playback.unref();
+
+	if (!audio_player) {
+		// Only create a default player when no external path was specified.
+		if (!audio_player_path.is_empty()) {
+			return;
+		}
+
+		AudioStreamPlayer *player = memnew(AudioStreamPlayer);
+		player->set_name(StringName("FluidSynthAudioPlayer"));
+		add_child(player);
+
+		audio_player = player;
+		owns_audio_player = true;
+	}
+
 	if (audio_stream.is_null()) {
 		audio_stream.instantiate();
 	}
@@ -51,24 +80,19 @@ void FluidSynthPlayer::_configure_audio_player() {
 	audio_stream->set_mix_rate(44100.0);
 	audio_stream->set_buffer_length(buffer_length);
 
-	if (!audio_player) {
-		audio_player = memnew(AudioStreamPlayer);
-	}
-	if (!audio_player->is_inside_tree()) {
-		add_child(audio_player);
-	}
-
-	audio_player->set_stream(audio_stream);
+	set_player_stream(audio_stream);
 	_start_stream_playback();
 }
 
 void FluidSynthPlayer::_start_stream_playback() {
 	if (!audio_stream.is_valid() || !audio_player) {
+		audio_playback.unref();
 		return;
 	}
 
-	audio_player->play();
-	audio_playback = Ref<AudioStreamGeneratorPlayback>(Object::cast_to<AudioStreamGeneratorPlayback>(audio_player->get_stream_playback().ptr()));
+	play_audio_player();
+	audio_playback = get_audio_player_playback();
+	// audio_playback = Ref<AudioStreamGeneratorPlayback>(Object::cast_to<AudioStreamGeneratorPlayback>(audio_player->get_stream_playback().ptr()));
 }
 
 void FluidSynthPlayer::render_audio() {
@@ -128,9 +152,9 @@ void FluidSynthPlayer::set_buffer_length(double seconds) {
 		return;
 	}
 
-	const bool was_playing = audio_player->is_playing();
+	const bool was_playing = is_audio_player_playing();
 	if (was_playing) {
-		audio_player->stop();
+		stop_audio_player();
 	}
 
 	audio_stream->set_buffer_length(buffer_length);
@@ -409,4 +433,80 @@ void FluidSynthPlayer::apply_synth_settings() {
 	fluid_synth_set_chorus_group_type(synth, -1, FLUID_CHORUS_MOD_SINE);
 
 #endif // ENABLE_FLUID_EFFECTS
+}
+
+bool FluidSynthPlayer::is_valid_audio_player(Node *_audio_player) {
+	return Object::cast_to<AudioStreamPlayer>(_audio_player) ||
+			Object::cast_to<AudioStreamPlayer2D>(_audio_player) ||
+			Object::cast_to<AudioStreamPlayer3D>(_audio_player);
+}
+
+void FluidSynthPlayer::set_audio_player(const NodePath &path) {
+	audio_player_path = path;
+
+	if (!is_inside_tree()) {
+		return;
+	}
+
+	Node *new_player = nullptr;
+	if (!path.is_empty()) {
+		new_player = get_node_or_null(path);
+		if (!new_player || !is_valid_audio_player(new_player)) {
+			UtilityFunctions::push_error("FluidSynthPlayer: audio_player must be an AudioStreamPlayer, AudioStreamPlayer2D, or AudioStreamPlayer3D.");
+			return;
+		}
+	}
+
+	if (audio_player == new_player) {
+		return;
+	}
+
+	// Drop the old playback reference before changing players.
+	audio_playback.unref();
+
+	// Only delete a player created and owned by this node.
+	if (audio_player && owns_audio_player) {
+		audio_player->queue_free();
+	}
+
+	audio_player = new_player;
+	owns_audio_player = false;
+
+	_configure_audio_player();
+}
+
+template <typename F>
+void for_each_audio_player(Node *node, F &&func) {
+	if (auto *p = Object::cast_to<AudioStreamPlayer>(node)) {
+		func(p);
+	} else if (auto *p = Object::cast_to<AudioStreamPlayer2D>(node)) {
+		func(p);
+	} else if (auto *p = Object::cast_to<AudioStreamPlayer3D>(node)) {
+		func(p);
+	}
+}
+
+void FluidSynthPlayer::set_player_stream(const Ref<AudioStream> &stream) {
+	for_each_audio_player(audio_player, [&](auto *p) { p->set_stream(stream); });
+}
+
+void FluidSynthPlayer::play_audio_player() {
+	for_each_audio_player(audio_player, [](auto *p) { p->play(); });
+}
+
+void FluidSynthPlayer::stop_audio_player() {
+	for_each_audio_player(audio_player, [](auto *p) { p->stop(); });
+}
+
+bool FluidSynthPlayer::is_audio_player_playing() const {
+	bool playing = false;
+	for_each_audio_player(audio_player, [&](auto *p) {playing = p->is_playing();});
+	return playing;
+}
+
+Ref<AudioStreamGeneratorPlayback>
+FluidSynthPlayer::get_audio_player_playback() const {
+	Ref<AudioStreamGeneratorPlayback> playback;
+	for_each_audio_player(audio_player, [&](auto *p) { playback = p->get_stream_playback(); });
+	return playback;
 }

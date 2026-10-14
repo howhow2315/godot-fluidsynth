@@ -4,18 +4,20 @@
 [ext_resource type="Script" uid="uid://ydp5o12wmq1w" path="res://classes/midi_visualizer.gd" id="2_ik7bt"]
 [ext_resource type="Script" uid="uid://buvijytvkgmow" path="res://classes/midi_listener.gd" id="2_wms8s"]
 
+[sub_resource type="AudioStreamGenerator" id="AudioStreamGenerator_h2yge"]
+buffer_length = 0.035
+
 [node name="Main" type="Node" unique_id=329215823]
 script = ExtResource("1_g1q4x")
 
 [node name="FluidSynthPlayer" type="FluidSynthPlayer" parent="." unique_id=1636009764]
+audio_player = NodePath("AudioStreamPlayer3D")
 buffer_length = 0.03499999999999999
 gain = 6.0
-reverb_room_size = 1.0
-reverb_damping = 1.0
-reverb_width = 100.0
-reverb_level = 1.0
-chorus_enabled = true
-chorus_number = 99
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="FluidSynthPlayer" unique_id=437532103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.071292, 2, 0)
+stream = SubResource("AudioStreamGenerator_h2yge")
 
 [node name="MIDIListener" type="Node" parent="." unique_id=1915273076]
 script = ExtResource("2_wms8s")

@@ -5,6 +5,8 @@
 		"AudioStreamGenerator",
 		"AudioStreamGeneratorPlayback",
 		"AudioStreamPlayer",
+		"AudioStreamPlayer2D",
+		"AudioStreamPlayer3D",
 		"InputEventMIDI",
 		"Node",
 		"ResourceLoader",

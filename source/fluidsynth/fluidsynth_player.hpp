@@ -4,6 +4,8 @@
 #include <godot_cpp/classes/audio_stream_generator.hpp>
 #include <godot_cpp/classes/audio_stream_generator_playback.hpp>
 #include <godot_cpp/classes/audio_stream_player.hpp>
+#include <godot_cpp/classes/audio_stream_player2d.hpp>
+#include <godot_cpp/classes/audio_stream_player3d.hpp>
 #include <godot_cpp/classes/input_event_midi.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -28,7 +30,21 @@ private:
 	int sound_font_id = -1;
 
 	// godot audio output
-	AudioStreamPlayer *audio_player = nullptr;
+	bool is_valid_audio_player(Node *_audio_player);
+	void set_player_stream(const Ref<AudioStream> &stream);
+	void play_audio_player();
+	void stop_audio_player();
+	bool is_audio_player_playing() const;
+
+	Ref<AudioStreamGeneratorPlayback> get_audio_player_playback() const;
+
+    NodePath audio_player_path;
+    Node *audio_player = nullptr;
+	bool owns_audio_player = false;
+
+	void _configure_audio_player();
+	void _start_stream_playback();
+
 	Ref<AudioStreamGenerator> audio_stream;
 	Ref<AudioStreamGeneratorPlayback> audio_playback;
 
@@ -38,7 +54,6 @@ private:
 	double gain = 0.0;
 	int polyphony = 256;
 
-
 	// Reverb.
 	bool reverb_enabled = false;
 	double reverb_room_size = 0.61;
@@ -46,7 +61,7 @@ private:
 	double reverb_width = 0.76;
 	double reverb_level = 0.61;
 
-	#ifdef ENABLE_FLUID_EFFECTS
+#ifdef ENABLE_FLUID_EFFECTS
 
 	// Chorus.
 	bool chorus_enabled = false;
@@ -55,7 +70,7 @@ private:
 	double chorus_speed = 0.3;
 	double chorus_depth = 8.0;
 
-	#endif // ENABLE_FLUID_EFFECTS
+#endif // ENABLE_FLUID_EFFECTS
 
 	void apply_synth_settings();
 
@@ -64,6 +79,10 @@ protected:
 		// Audio
 
 		ClassDB::bind_method(D_METHOD("render_audio"), &FluidSynthPlayer::render_audio);
+
+		ClassDB::bind_method(D_METHOD("set_audio_player", "audio_player"), &FluidSynthPlayer::set_audio_player);
+		ClassDB::bind_method(D_METHOD("get_audio_player"), &FluidSynthPlayer::get_audio_player);
+		ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "audio_player"), "set_audio_player", "get_audio_player");
 
 		ClassDB::bind_method(D_METHOD("set_buffer_length", "seconds"), &FluidSynthPlayer::set_buffer_length);
 		ClassDB::bind_method(D_METHOD("get_buffer_length"), &FluidSynthPlayer::get_buffer_length);
@@ -128,7 +147,7 @@ protected:
 		ClassDB::bind_method(D_METHOD("get_reverb_level"), &FluidSynthPlayer::get_reverb_level);
 		ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "reverb_level", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_reverb_level", "get_reverb_level");
 
-		#ifdef ENABLE_FLUID_EFFECTS
+#ifdef ENABLE_FLUID_EFFECTS
 
 		// Chorus
 		ClassDB::bind_method(D_METHOD("set_chorus_enabled", "value"), &FluidSynthPlayer::set_chorus_enabled);
@@ -151,7 +170,7 @@ protected:
 		ClassDB::bind_method(D_METHOD("get_chorus_depth"), &FluidSynthPlayer::get_chorus_depth);
 		ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "chorus_depth", PROPERTY_HINT_RANGE, "0.0,256.0,0.1"), "set_chorus_depth", "get_chorus_depth");
 
-		#endif
+#endif
 	}
 
 public:
@@ -161,10 +180,11 @@ public:
 	void _ready() override;
 	void _process(double delta) override { render_audio(); };
 
-	void _configure_audio_player();
-	void _start_stream_playback();
-
 	// Audio.
+
+    void set_audio_player(const NodePath &path);
+	NodePath get_audio_player() { return audio_player_path; };
+
 	void render_audio();
 
 	// SoundFont.
@@ -213,7 +233,7 @@ public:
 	}
 	int get_polyphony() const { return polyphony; }
 
-	// the way fluidsynth handles effects in the latest verions is by "fx groups", meaning 
+	// the way fluidsynth handles effects in the latest verions is by "fx groups", meaning
 	// we should probably add a configurable array with an "effect settrings" resource
 	// for full configuration
 
@@ -259,7 +279,7 @@ public:
 	}
 	double get_reverb_level() const { return reverb_level; }
 
-	#ifdef ENABLE_FLUID_EFFECTS
+#ifdef ENABLE_FLUID_EFFECTS
 
 	// Chorus.
 
@@ -303,5 +323,5 @@ public:
 	}
 	double get_chorus_depth() const { return chorus_depth; }
 
-	#endif // ENABLE_FLUID_EFFECTS
+#endif // ENABLE_FLUID_EFFECTS
 };

@@ -16,6 +16,11 @@ func _ready() -> void:
 	await get_tree().create_timer(0.5).timeout
 	print("playing scale")
 	play_scale()
+	
+	#while true:
+		#await get_tree().create_timer(3.5).timeout
+		#print("playing scale")
+		#play_scale()
 
 func play_scale(delay: float = 0.15, transpose: int = 0) -> void:
 	var notes := [60, 62, 64, 65, 67, 69, 71, 72]
