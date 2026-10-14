@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="SoundFontLoader" inherits="ResourceFormatLoader"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+    <brief_description>
+		A resource format loader for SoundFont 2 files.
+	</brief_description>
+    <description>
+		SoundFontLoader enables Godot's resource loading system to load SoundFont resources from SoundFont 2 (.sf2) files.
+
+		The loader recognizes files with the .sf2 extension, regardless of the extension's letter case, and identifies their resource type as SoundFont. Other file formats, including SoundFont 3 (.sf3), are not currently supported.
+
+		When loading a file, the loader creates a SoundFont resource and scans the specified file to initialize it. If scanning fails, an error is reported and an empty Variant is returned.
+
+		This class extends ResourceFormatLoader and is intended to be registered with Godot's resource loading system so that compatible files can be loaded through ResourceLoader.
+	</description>
+    <tutorials>
+    </tutorials>
+    <methods>
+        <method name="_get_recognized_extensions" qualifiers="virtual const">
+            <return type="PackedStringArray" />
+            <description>
+				Returns the list of file extensions recognized by this loader. Currently, the list contains only "sf2".
+			</description>
+        </method>
+        <method name="_handles_type" qualifiers="virtual const">
+            <return type="bool" />
+            <param index="0" name="type" type="StringName" />
+            <description>
+				Returns true if the requested resource type is "SoundFont"; otherwise, returns false.
+			</description>
+        </method>
+        <method name="_get_resource_type" qualifiers="virtual const">
+            <return type="String" />
+            <param index="0" name="path" type="String" />
+            <description>
+				Returns "SoundFont" if the file path has the .sf2 extension, ignoring case. Returns an empty string for unsupported extensions.
+			</description>
+        </method>
+        <method name="_load" qualifiers="virtual const">
+            <return type="Variant" />
+            <param index="0" name="path" type="String" />
+            <param index="1" name="original_path" type="String" />
+            <param index="2" name="use_sub_threads" type="bool" />
+            <param index="3" name="cache_mode" type="int" />
+            <description>
+				Creates a SoundFont resource and scans the file specified by path to load its contents.
+
+				Returns the initialized SoundFont resource if scanning succeeds. If scanning fails, reports an error containing the file path and returns an empty Variant.
+
+				The original_path, use_sub_threads, and cache_mode parameters are provided to satisfy the ResourceFormatLoader interface but are not used by this implementation.
+			</description>
+        </method>
+    </methods>
+</class>

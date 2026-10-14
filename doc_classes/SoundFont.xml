@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="SoundFont" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+    <brief_description>
+		Stores SoundFont 2 data and provides access to its instrument presets for use with FluidSynth.
+	</brief_description>
+    <description>
+		SoundFont is a resource that stores the binary contents of a SoundFont 2 (SF2) file and provides access to its instrument preset metadata.
+
+		A SoundFont can be initialized by scanning an SF2 file from a path or by loading its contents from a PackedByteArray. During initialization, the resource uses FluidSynth to inspect the SoundFont and populate its list of SoundFontPreset resources.
+
+		The resource can load its stored SoundFont data into an existing FluidSynth synthesizer. This allows FluidSynthPlayer and other compatible components to use the SoundFont for audio synthesis.
+
+		The resource uses a custom in-memory file interface to read SoundFont data directly from memory without requiring a separate physical file for FluidSynth to access.
+
+		This class supports loading and inspecting SoundFont data; it does not provide functionality for editing SoundFont files.
+	</description>
+    <tutorials>
+    </tutorials>
+    <methods>
+        <method name="scan">
+            <return type="bool" />
+            <param index="0" name="path" type="String" />
+            <description>
+				Opens the file at the specified path, reads its contents into memory, and scans the data to identify the available SoundFont presets.
+
+				Returns true if the file is read successfully and the SoundFont data is scanned successfully. Returns false if the file cannot be opened, is empty, or cannot be scanned by FluidSynth.
+
+				On success, replaces the resource's stored data and updates its preset list.
+			</description>
+        </method>
+        <method name="load_data">
+            <return type="bool" />
+            <param index="0" name="data" type="PackedByteArray" />
+            <description>
+				Loads SoundFont data from a PackedByteArray and scans it to identify the available presets.
+
+				Returns false if the supplied byte array is empty or if scanning fails. Otherwise, stores the supplied data and returns the result of the scan.
+
+				The supplied data must contain a valid SoundFont file supported by FluidSynth.
+			</description>
+        </method>
+    </methods>
+</class>

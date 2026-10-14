@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="SoundFontPreset" inherits="Resource"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		Stores the bank, program number, and name of a SoundFont instrument preset.
+	</brief_description>
+	<description>
+		SoundFontPreset represents an individual instrument preset contained in a SoundFont.
+
+		Each preset is identified by a bank number and a program number, along with a name describing the instrument or sound. These values can be used to identify and select instruments when working with a SoundFont through FluidSynthPlayer.
+
+		This class extends Resource, allowing preset information to be represented as a Godot resource.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+	</methods>
+</class>
