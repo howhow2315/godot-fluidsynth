@@ -1,4 +1,5 @@
 #include "sound_font.hpp"
+#include "sound_font_preset.hpp"
 
 namespace {
 
@@ -12,13 +13,12 @@ void *memory_open(const char *filename) {
 	if (!filename) {
 		return nullptr;
 	}
-	if (std::strncmp(filename, "godot-sf2://", 12) != 0) {
+	if (strncmp(filename, "godot-sf2://", 12) != 0) {
 		return nullptr;
 	}
 
 	void *ptr = nullptr;
-
-	if (std::sscanf(filename + 12, "%p", &ptr) != 1) {
+	if (sscanf(filename + 12, "%p", &ptr) != 1) {
 		return nullptr;
 	}
 
@@ -37,7 +37,7 @@ int memory_read(void *buffer, fluid_long_long_t count, void *handle) {
 		return FLUID_FAILED;
 	}
 
-	std::memcpy(buffer, file->data + file->position, amount);
+	memcpy(buffer, file->data + file->position, amount);
 
 	file->position += amount;
 
@@ -95,33 +95,15 @@ int memory_close(void *) { return FLUID_OK; }
 
 } // namespace
 
-void SoundFont::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_data", "data"), &SoundFont::set_data);
-	ClassDB::bind_method(D_METHOD("get_data"), &SoundFont::get_data);
-	ClassDB::bind_method(D_METHOD("set_presets", "presets"),
-			&SoundFont::set_presets);
-	ClassDB::bind_method(D_METHOD("get_presets"), &SoundFont::get_presets);
-
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "presets"), "set_presets",
-			"get_presets");
-
-	ClassDB::bind_method(D_METHOD("scan", "path"), &SoundFont::scan);
-	ClassDB::bind_method(D_METHOD("load_data", "data"), &SoundFont::load_data);
-}
-
-SoundFont::SoundFont() {}
-
-SoundFont::~SoundFont() {}
-
 void SoundFont::set_data(const PackedByteArray &value) { data = value; }
 
 PackedByteArray SoundFont::get_data() const { return data; }
 
-void SoundFont::set_presets(const TypedArray<Dictionary> &value) {
+void SoundFont::set_presets(const TypedArray<SoundFontPreset> &value) {
 	presets = value;
 }
 
-TypedArray<Dictionary> SoundFont::get_presets() const { return presets; }
+TypedArray<SoundFontPreset> SoundFont::get_presets() const { return presets; }
 
 bool SoundFont::scan(const String &path) {
 	Ref<FileAccess> file = FileAccess::open(path, FileAccess::READ);
@@ -182,8 +164,7 @@ bool SoundFont::scan_data() {
 	memory.position = 0;
 
 	char virtual_filename[128];
-	std::snprintf(virtual_filename, sizeof(virtual_filename), "godot-sf2://%p",
-			static_cast<void *>(&memory));
+	snprintf(virtual_filename, sizeof(virtual_filename), "godot-sf2://%p", static_cast<void *>(&memory));
 
 	int sfid = fluid_synth_sfload(synth, virtual_filename, 0);
 	if (sfid < 0) {
@@ -207,10 +188,12 @@ bool SoundFont::scan_data() {
 	fluid_sfont_iteration_start(sfont);
 
 	while ((preset = fluid_sfont_iteration_next(sfont)) != nullptr) {
-		Dictionary info;
-		info["bank"] = fluid_preset_get_banknum(preset);
-		info["program"] = fluid_preset_get_num(preset);
-		info["name"] = String(fluid_preset_get_name(preset));
+		Ref<SoundFontPreset> info;
+		info.instantiate();
+
+		info->set_bank(fluid_preset_get_banknum(preset));
+		info->set_program(fluid_preset_get_num(preset));
+		info->set_name(String(fluid_preset_get_name(preset)));
 
 		presets.push_back(info);
 	}
@@ -234,8 +217,7 @@ fluid_sfloader_t *SoundFont::create_memory_loader(fluid_settings_t *settings) {
 		return nullptr;
 	}
 
-	const int result = fluid_sfloader_set_callbacks(
-			loader, memory_open, memory_read, memory_seek, memory_tell, memory_close);
+	const int result = fluid_sfloader_set_callbacks(loader, memory_open, memory_read, memory_seek, memory_tell, memory_close);
 
 	if (result != FLUID_OK) {
 		delete_fluid_sfloader(loader);
@@ -258,7 +240,6 @@ int SoundFont::load_into_synth(fluid_synth_t *synth) {
 
 	char virtual_filename[128];
 
-	std::snprintf(virtual_filename, sizeof(virtual_filename), "godot-sf2://%p",
-			static_cast<void *>(&memory));
+	snprintf(virtual_filename, sizeof(virtual_filename), "godot-sf2://%p", static_cast<void *>(&memory));
 	return fluid_synth_sfload(synth, virtual_filename, 1);
 }

@@ -6,20 +6,22 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_DIRETORY="${ROOT}/project"
 
-rm -rf "$ROOT/build/fluidsynth" # rm fluidsynth build files
-rm -rf "$PROJECT_DIRETORY/addons/godot-fluidsynth/binaries" # rm built addon bin files 
-
-# rm caches 
-rm -rf "$PROJECT_DIRETORY/.godot/" 
-rm -rf "$ROOT/generated"
-rm -rf "$ROOT/.cache"
-
 BUILD_PROFILE_FILE="${ROOT}/build_profile.json"
 if [ ! -e "$BUILD_PROFILE_FILE" ]; then
     scons compiledb=yes compile_commands.json
 fi
 
-scons -c # clean out c++ build files 
+# rm -rf "$ROOT/build/fluidsynth" # rm fluidsynth build files
+# rm -rf "$PROJECT_DIRETORY/addons/godot-fluidsynth/binaries" # rm built addon bin files 
+
+# # rm caches 
+# rm -rf "$ROOT/generated"
+# rm -rf "$ROOT/.cache"
+
+# reset godot project
+rm -rf "$PROJECT_DIRETORY/.godot/" 
+
+# scons -c # clean out c++ build files 
 
 # build for host platform
 scons

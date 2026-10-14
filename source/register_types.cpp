@@ -1,8 +1,9 @@
 #include "register_types.hpp"
 
-#include "fluidsynth_player.hpp"
-#include "sound_font.hpp"
-#include "sound_font_loader.hpp"
+#include "fluidsynth/fluidsynth_player.hpp"
+#include "sound_font/sound_font_preset.hpp"
+#include "sound_font/sound_font.hpp"
+#include "sound_font/sound_font_loader.hpp"
 
 static Ref<SoundFontLoader> sound_font_loader;
 
@@ -12,6 +13,7 @@ void initialize_fluidsynth_module(ModuleInitializationLevel p_level) {
 	}
 
 	GDREGISTER_CLASS(FluidSynthPlayer);
+	GDREGISTER_CLASS(SoundFontPreset);
 	GDREGISTER_CLASS(SoundFont);
 	GDREGISTER_CLASS(SoundFontLoader);
 

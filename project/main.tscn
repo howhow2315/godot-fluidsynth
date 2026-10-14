@@ -10,6 +10,12 @@ script = ExtResource("1_g1q4x")
 [node name="FluidSynthPlayer" type="FluidSynthPlayer" parent="." unique_id=1636009764]
 buffer_length = 0.03499999999999999
 gain = 6.0
+reverb_room_size = 1.0
+reverb_damping = 1.0
+reverb_width = 100.0
+reverb_level = 1.0
+chorus_enabled = true
+chorus_number = 99
 
 [node name="MIDIListener" type="Node" parent="." unique_id=1915273076]
 script = ExtResource("2_wms8s")

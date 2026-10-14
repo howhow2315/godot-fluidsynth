@@ -8,10 +8,9 @@
 #include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include <cstdio>
-#include <cstring>
-
 #include <fluidsynth.h>
+
+#include "sound_font_preset.hpp"
 
 using namespace godot;
 
@@ -22,22 +21,33 @@ class SoundFont : public Resource {
 
 private:
 	PackedByteArray data;
-	TypedArray<Dictionary> presets;
+	TypedArray<SoundFontPreset> presets;
 
 	bool scan_data();
 
 protected:
-	static void _bind_methods();
+	static void _bind_methods() {
+		ClassDB::bind_method(D_METHOD("set_data", "data"), &SoundFont::set_data);
+		ClassDB::bind_method(D_METHOD("get_data"), &SoundFont::get_data);
+
+		ClassDB::bind_method(D_METHOD("set_presets", "presets"), &SoundFont::set_presets);
+		ClassDB::bind_method(D_METHOD("get_presets"), &SoundFont::get_presets);
+		ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "presets", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY), "set_presets","get_presets");
+
+		ClassDB::bind_method(D_METHOD("scan", "path"), &SoundFont::scan);
+
+		ClassDB::bind_method(D_METHOD("load_data", "data"), &SoundFont::load_data);
+	}
 
 public:
-	SoundFont();
-	~SoundFont();
+	SoundFont() = default;
+	~SoundFont() = default;
 
 	void set_data(const PackedByteArray &value);
 	PackedByteArray get_data() const;
 
-	TypedArray<Dictionary> get_presets() const;
-	void set_presets(const TypedArray<Dictionary> &value);
+	TypedArray<SoundFontPreset> get_presets() const;
+	void set_presets(const TypedArray<SoundFontPreset> &value);
 
 	// Convenience API for loading an SF2 directly from a path.
 	bool scan(const String &path);

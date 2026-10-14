@@ -25,6 +25,5 @@ public:
 
 	String _get_resource_type(const String &path) const override;
 
-	Variant _load(const String &path, const String &original_path,
-			bool use_sub_threads, int32_t cache_mode) const override;
+	Variant _load(const String &path, const String &original_path, bool use_sub_threads, int32_t cache_mode) const override;
 };
