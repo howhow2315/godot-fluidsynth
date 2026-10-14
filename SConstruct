@@ -89,6 +89,17 @@ env.Append(
 
 env.Append(CPPPATH=[f"{SOURCE_DIRECTORY}/"])
 
+# include document data
+if env["target"] in ["editor", "template_debug"]:
+    try:
+        doc_data = env.GodotCPPDocData(
+            f"{GENERATED_DOCUMENTS_DIRECTORY}/doc_data.gen.cpp",
+            source=Glob("doc_classes/*.xml"),
+        )
+        sources.append(doc_data)
+    except AttributeError:
+        print("Not including class reference as we're targeting a pre-4.3 baseline.")
+
 objects = env.SharedObject(sources)
 env.Depends(objects, fluidsynth_build)
 
@@ -158,17 +169,6 @@ licenses_files = env.Command(
 )
 default_targets.append(licenses_files)
 Alias("licenses_files", licenses_files)
-
-# include document data
-if env["target"] in ["editor", "template_debug"]:
-    try:
-        doc_data = env.GodotCPPDocData(
-            f"{GENERATED_DOCUMENTS_DIRECTORY}/doc_data.gen.cpp",
-            source=Glob("doc_classes/*.xml"),
-        )
-        sources.append(doc_data)
-    except AttributeError:
-        print("Not including class reference as we're targeting a pre-4.3 baseline.")
 
 copy = env.Install(f"{BINARY_DIRECTORY}/{BIN_SUBDIRECTORY}/", library)
 
