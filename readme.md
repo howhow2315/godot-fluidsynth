@@ -16,13 +16,13 @@ if you decide to use this or help at all, i deeply apologize for my lack of comm
 
 ## todo
 
-- export to all platforms that fluidsynth and godot support; currently implemented: linux, windows
-- add pitch_bend/chorus/reverb midi fluidsynth controls (basic functions are present, they do not work)
+- export to all platforms that fluidsynth and godot support; currently implemented and maintained: linux, windows
+- add chorus midi fluidsynth controls (basic functions are present, they do not work)
 - look into handling "program"/"instruments" better
-- add editor annotations via godots .xml feature
+- finish editor annotations via godots .xml feature
 - cleanup `presets` to be sorted by bank and program number instead of a big array/dictionary
-- convert preset from a dictionary to a resource SoundFontPreset
-- figure out how to handle buffer size better as well as reduce latency (its already pretty low but lower the better)
+- figure out how to reduce latency and handle buffer size better (its already pretty low but lower the better)
+- cache fluidsynth build in ci
 
 #### platforms
 
