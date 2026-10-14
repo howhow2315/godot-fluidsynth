@@ -32,7 +32,7 @@ protected:
 
 		ClassDB::bind_method(D_METHOD("set_presets", "presets"), &SoundFont::set_presets);
 		ClassDB::bind_method(D_METHOD("get_presets"), &SoundFont::get_presets);
-		ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "presets", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY), "set_presets","get_presets");
+		ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "presets", PROPERTY_HINT_NONE, "SoundFontPreset", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY), "set_presets","get_presets");
 
 		ClassDB::bind_method(D_METHOD("scan", "path"), &SoundFont::scan);
 

@@ -85,8 +85,6 @@ env.Append(
     ],
 )
 
-
-
 env.Append(CPPPATH=[f"{SOURCE_DIRECTORY}/"])
 
 # include document data

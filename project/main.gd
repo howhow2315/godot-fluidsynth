@@ -5,10 +5,7 @@ extends Node
 @onready var midi_visualizer := $MIDIVisualizer
 
 func _ready() -> void:
-	OS.close_midi_inputs()
 	OS.open_midi_inputs()
-	
-	synth.load_sound_font(preload("res://assets/soundfonts/TimGM6mb.sf2"))
 	
 	midi_listener.midi_event.connect(synth.handle_midi_event)
 	midi_listener.midi_event.connect(func(input_event: InputEventMIDI): midi_visualizer.on_midi_event(input_event, 1))

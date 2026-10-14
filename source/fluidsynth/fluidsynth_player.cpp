@@ -1,6 +1,8 @@
 #include "fluidsynth_player.hpp"
 #include "godot_cpp/classes/node.hpp"
 #include "godot_cpp/variant/string_name.hpp"
+#include "godot_cpp/variant/typed_array.hpp"
+#include "sound_font/sound_font.hpp"
 
 FluidSynthPlayer::FluidSynthPlayer() {
 	set_process(true);
@@ -42,6 +44,8 @@ FluidSynthPlayer::~FluidSynthPlayer() {
 }
 
 void FluidSynthPlayer::_ready() {
+	load_sound_fonts(sound_fonts);
+
 	if (!audio_player_path.is_empty()) {
 		Node *node = get_node_or_null(audio_player_path);
 
@@ -166,23 +170,66 @@ void FluidSynthPlayer::set_buffer_length(double seconds) {
 
 // sound_font
 
-int FluidSynthPlayer::load_sound_font(const Ref<SoundFont> &sound_font) {
-	if (!synth || sound_font.is_null()) {
+int FluidSynthPlayer::load_sound_font(const Ref<SoundFont> &sfont) {
+	// reject invalid inputs
+	if (!synth || sfont.is_null()) {
 		return -1;
 	}
 
-	const int new_sound_font_id = sound_font->load_into_synth(synth);
-	if (new_sound_font_id < 0) {
+	// find the resource if it is already registered
+	int index = sound_fonts.find(sfont);
+
+	// reuse the id if the soundfont is still loaded
+	if (index >= 0 && index < sound_font_ids.size()) {
+		const int fsid = sound_font_ids[index];
+		if (fsid >= 0 && fluid_synth_get_sfont_by_id(synth, fsid)) {
+			return fsid;
+		}
+	}
+
+	// load the soundfont into the synth
+	const int fsid = sfont->load_into_synth(synth);
+	if (fsid < 0) {
 		UtilityFunctions::push_error("FluidSynth failed to load SoundFont from memory.");
 		return -1;
 	}
 
-	if (sound_font_id >= 0) {
-		fluid_synth_sfunload(synth, sound_font_id, 1);
+	// register new resources and their ids
+	if (index < 0) {
+		sound_fonts.append(sfont);
+		sound_font_ids.append(fsid);
+		return fsid;
 	}
-	sound_font_id = new_sound_font_id;
 
-	return sound_font_id;
+	// fill missing ids for resources registered during initialization
+	while (sound_font_ids.size() < index) {
+		sound_font_ids.append(-1);
+	}
+
+	// update the existing id or append it
+	if (index < sound_font_ids.size()) {
+		sound_font_ids[index] = fsid;
+	} else {
+		sound_font_ids.append(fsid);
+	}
+
+	return fsid;
+}
+
+void FluidSynthPlayer::load_sound_fonts(const TypedArray<SoundFont> &sfonts) {
+	if (!synth) {
+		return;
+	}
+
+	// iterate through the sound_fonts and lazy load them
+	for (int i = 0; i < sfonts.size(); i++) {
+		Ref<SoundFont> sfont = sfonts[i];
+		if (sfont.is_null()) {
+			continue;
+		}
+
+		load_sound_font(sfont);
+	}
 }
 
 TypedArray<SoundFontPreset> FluidSynthPlayer::get_sound_font_presets() {
@@ -500,7 +547,7 @@ void FluidSynthPlayer::stop_audio_player() {
 
 bool FluidSynthPlayer::is_audio_player_playing() const {
 	bool playing = false;
-	for_each_audio_player(audio_player, [&](auto *p) {playing = p->is_playing();});
+	for_each_audio_player(audio_player, [&](auto *p) { playing = p->is_playing(); });
 	return playing;
 }
 

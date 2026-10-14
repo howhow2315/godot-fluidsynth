@@ -27,7 +27,8 @@ private:
 	fluid_synth_t *synth = nullptr;
 	fluid_sfloader_t *sfloader = nullptr;
 
-	int sound_font_id = -1;
+	PackedInt32Array sound_font_ids;
+	int sound_font_id = -1; // the currently active soundfont id
 
 	// godot audio output
 	bool is_valid_audio_player(Node *_audio_player);
@@ -38,8 +39,8 @@ private:
 
 	Ref<AudioStreamGeneratorPlayback> get_audio_player_playback() const;
 
-    NodePath audio_player_path;
-    Node *audio_player = nullptr;
+	NodePath audio_player_path;
+	Node *audio_player = nullptr;
 	bool owns_audio_player = false;
 
 	void _configure_audio_player();
@@ -76,8 +77,24 @@ private:
 
 protected:
 	static void _bind_methods() {
+
+		// SoundFont
+
+		ADD_GROUP("SoundFont", "");
+		ClassDB::bind_method(D_METHOD("load_sound_font", "sound_font"), &FluidSynthPlayer::load_sound_font);
+		ClassDB::bind_method(D_METHOD("get_sound_font_presets"), &FluidSynthPlayer::get_sound_font_presets);
+
+		ClassDB::bind_method(D_METHOD("set_sound_fonts", "value"), &FluidSynthPlayer::set_sound_fonts);
+		ClassDB::bind_method(D_METHOD("get_sound_fonts"), &FluidSynthPlayer::get_sound_fonts);
+		ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "sound_fonts", PROPERTY_HINT_ARRAY_TYPE, "SoundFont"), "set_sound_fonts", "get_sound_fonts");
+
+		ClassDB::bind_method(D_METHOD("set_polyphony", "value"), &FluidSynthPlayer::set_polyphony);
+		ClassDB::bind_method(D_METHOD("get_polyphony"), &FluidSynthPlayer::get_polyphony);
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "polyphony", PROPERTY_HINT_RANGE, "1,4096,1"), "set_polyphony", "get_polyphony");
+
 		// Audio
 
+		ADD_GROUP("Audio", "");
 		ClassDB::bind_method(D_METHOD("render_audio"), &FluidSynthPlayer::render_audio);
 
 		ClassDB::bind_method(D_METHOD("set_audio_player", "audio_player"), &FluidSynthPlayer::set_audio_player);
@@ -88,45 +105,18 @@ protected:
 		ClassDB::bind_method(D_METHOD("get_buffer_length"), &FluidSynthPlayer::get_buffer_length);
 		ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "buffer_length", PROPERTY_HINT_RANGE, "0.005,0.5,0.005"), "set_buffer_length", "get_buffer_length");
 
-		// SoundFont
-
-		ClassDB::bind_method(D_METHOD("load_sound_font", "sound_font"), &FluidSynthPlayer::load_sound_font);
-		ClassDB::bind_method(D_METHOD("get_sound_font_presets"), &FluidSynthPlayer::get_sound_font_presets);
-
-		// MIDI
-
-		ClassDB::bind_method(D_METHOD("note_on", "channel", "key", "velocity"), &FluidSynthPlayer::note_on);
-		ClassDB::bind_method(D_METHOD("note_off", "channel", "key"), &FluidSynthPlayer::note_off);
-		ClassDB::bind_method(D_METHOD("program_change", "channel", "bank", "program"), &FluidSynthPlayer::program_change);
-		ClassDB::bind_method(D_METHOD("control_change", "channel", "controller", "value"), &FluidSynthPlayer::control_change);
-		ClassDB::bind_method(D_METHOD("all_notes_off", "channel"), &FluidSynthPlayer::all_notes_off);
-		ClassDB::bind_method(D_METHOD("all_sounds_off", "channel"), &FluidSynthPlayer::all_sounds_off);
-		ClassDB::bind_method(D_METHOD("key_pressure", "channel", "key", "pressure"), &FluidSynthPlayer::key_pressure);
-		ClassDB::bind_method(D_METHOD("channel_pressure", "channel", "pressure"), &FluidSynthPlayer::channel_pressure);
-		ClassDB::bind_method(D_METHOD("pitch_bend", "channel", "value"), &FluidSynthPlayer::pitch_bend);
-
-		ClassDB::bind_method(D_METHOD("reset_controllers", "channel"), &FluidSynthPlayer::reset_controllers);
-		ClassDB::bind_method(D_METHOD("handle_midi_event", "event"), &FluidSynthPlayer::handle_midi_event);
-
-		// Volume
-
 		ClassDB::bind_method(D_METHOD("set_volume", "value"), &FluidSynthPlayer::set_volume);
 		ClassDB::bind_method(D_METHOD("get_volume"), &FluidSynthPlayer::get_volume);
 		ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "volume", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_volume", "get_volume");
-
-		// Gain
 
 		ClassDB::bind_method(D_METHOD("set_gain", "value"), &FluidSynthPlayer::set_gain);
 		ClassDB::bind_method(D_METHOD("get_gain"), &FluidSynthPlayer::get_gain);
 		ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "gain", PROPERTY_HINT_RANGE, "-20.0,20.0,0.1"), "set_gain", "get_gain");
 
-		// Polyphony
+		ADD_GROUP("Effects", "");
 
-		ClassDB::bind_method(D_METHOD("set_polyphony", "value"), &FluidSynthPlayer::set_polyphony);
-		ClassDB::bind_method(D_METHOD("get_polyphony"), &FluidSynthPlayer::get_polyphony);
-		ADD_PROPERTY(PropertyInfo(Variant::INT, "polyphony", PROPERTY_HINT_RANGE, "1,4096,1"), "set_polyphony", "get_polyphony");
+		ADD_SUBGROUP("Reverb", "reverb");
 
-		// Reverb
 		ClassDB::bind_method(D_METHOD("set_reverb_enabled", "value"), &FluidSynthPlayer::set_reverb_enabled);
 		ClassDB::bind_method(D_METHOD("is_reverb_enabled"), &FluidSynthPlayer::is_reverb_enabled);
 		ADD_PROPERTY(PropertyInfo(Variant::BOOL, "reverb_enabled"), "set_reverb_enabled", "is_reverb_enabled");
@@ -149,7 +139,8 @@ protected:
 
 #ifdef ENABLE_FLUID_EFFECTS
 
-		// Chorus
+		ADD_SUBGROUP("Chorus", "chorus");
+
 		ClassDB::bind_method(D_METHOD("set_chorus_enabled", "value"), &FluidSynthPlayer::set_chorus_enabled);
 		ClassDB::bind_method(D_METHOD("is_chorus_enabled"), &FluidSynthPlayer::is_chorus_enabled);
 		ADD_PROPERTY(PropertyInfo(Variant::BOOL, "chorus_enabled"), "set_chorus_enabled", "is_chorus_enabled");
@@ -171,6 +162,21 @@ protected:
 		ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "chorus_depth", PROPERTY_HINT_RANGE, "0.0,256.0,0.1"), "set_chorus_depth", "get_chorus_depth");
 
 #endif
+
+		// MIDI Control
+
+		ClassDB::bind_method(D_METHOD("note_on", "channel", "key", "velocity"), &FluidSynthPlayer::note_on);
+		ClassDB::bind_method(D_METHOD("note_off", "channel", "key"), &FluidSynthPlayer::note_off);
+		ClassDB::bind_method(D_METHOD("program_change", "channel", "bank", "program"), &FluidSynthPlayer::program_change);
+		ClassDB::bind_method(D_METHOD("control_change", "channel", "controller", "value"), &FluidSynthPlayer::control_change);
+		ClassDB::bind_method(D_METHOD("all_notes_off", "channel"), &FluidSynthPlayer::all_notes_off);
+		ClassDB::bind_method(D_METHOD("all_sounds_off", "channel"), &FluidSynthPlayer::all_sounds_off);
+		ClassDB::bind_method(D_METHOD("key_pressure", "channel", "key", "pressure"), &FluidSynthPlayer::key_pressure);
+		ClassDB::bind_method(D_METHOD("channel_pressure", "channel", "pressure"), &FluidSynthPlayer::channel_pressure);
+		ClassDB::bind_method(D_METHOD("pitch_bend", "channel", "value"), &FluidSynthPlayer::pitch_bend);
+
+		ClassDB::bind_method(D_METHOD("reset_controllers", "channel"), &FluidSynthPlayer::reset_controllers);
+		ClassDB::bind_method(D_METHOD("handle_midi_event", "event"), &FluidSynthPlayer::handle_midi_event);
 	}
 
 public:
@@ -180,18 +186,26 @@ public:
 	void _ready() override;
 	void _process(double delta) override { render_audio(); };
 
-	// Audio.
+	// Audio
 
-    void set_audio_player(const NodePath &path);
+	void set_audio_player(const NodePath &path);
 	NodePath get_audio_player() { return audio_player_path; };
 
 	void render_audio();
 
-	// SoundFont.
-	int load_sound_font(const Ref<SoundFont> &sound_font);
+	// SoundFont
+
+	int load_sound_font(const Ref<SoundFont> &sfont);
 	TypedArray<SoundFontPreset> get_sound_font_presets();
 
-	// MIDI.
+	// this allows in editor visualization of currently loaded soundfonts and their id
+	TypedArray<SoundFont> sound_fonts;
+	// we should probably also make this run load_sound_fonts so if someone tries manually setting the value itll reflect, might be better to leave it read only though
+	void set_sound_fonts(TypedArray<SoundFont> value) { sound_fonts = value; }; 
+	TypedArray<SoundFont> get_sound_fonts() const { return sound_fonts; }
+	void load_sound_fonts(const TypedArray<SoundFont> &sfonts);
+
+	// MIDI
 	void note_on(int channel, int key, int velocity);
 	void note_off(int channel, int key);
 	void program_change(int channel, int bank, int program);
@@ -207,7 +221,7 @@ public:
 
 	void handle_midi_event(const Ref<InputEventMIDI> &event);
 
-	// Buffer.
+	// Buffer
 	void set_buffer_length(double seconds);
 	double get_buffer_length() const { return buffer_length; }
 
@@ -237,7 +251,7 @@ public:
 	// we should probably add a configurable array with an "effect settrings" resource
 	// for full configuration
 
-	// Reverb.
+	// Reverb
 
 	void set_reverb_enabled(bool value) {
 		reverb_enabled = value;
@@ -281,7 +295,7 @@ public:
 
 #ifdef ENABLE_FLUID_EFFECTS
 
-	// Chorus.
+	// Chorus
 
 	void set_chorus_enabled(bool value) {
 		chorus_enabled = value;
