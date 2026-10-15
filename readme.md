@@ -10,8 +10,6 @@ useful alongside [howhow2315/godot-midi](https://github.com/howhow2315/godot-mid
 
 fluidsynth should work with sf3 but windows requires a library to be bundled with it and thats out of my personal scope
 
-frankly theres a lot of work left to do to make this a proper, and good plugin, but this proof of concept has basic functionality without much compromise (openmp enraging me)
-
 if you decide to use this or help at all, i deeply apologize for my lack of commits, i needed to pump this out as fast as i could and that meant mass local hotfixing (especially with ci...), id be happy to explain anything thats needed, feel free to contact me at [howhow.stream](https://howhow.stream)
 
 ## todo
@@ -23,6 +21,8 @@ if you decide to use this or help at all, i deeply apologize for my lack of comm
 - cleanup `presets` to be sorted by bank and program number instead of a big array/dictionary
 - figure out how to reduce latency and handle buffer size better (its already pretty low but lower the better)
 - cache fluidsynth build in ci
+- fix openmp fluidsynth cmake deps
+- look into sf3 support (requires an external dependency i believe)
 
 #### platforms
 
